@@ -20,14 +20,41 @@ require('http').createServer(function (request, response) {
             if (buffer.length > 1e6) request.connection.destroy(); // Prevent buffer overflow attacks
         });
         request.on('end', function () {
-            if (request.url === '/connect') {
+            if (request.url.startsWith('/connect')) {
+               if (buffer!==null && buffer!=""){
                 let postData = JSON.parse(buffer);
-                let login = postData.login;
-                let password = postData.login;
+                if ((postData !== null)
+                    || (postData.login !== null)) {
+                  let selectQuery = "SELECT star001_id,star001_name FROM star001_user where star001_name ='" + postData.login + "' and star001_passwd = '" + postData.password +"'";
+  	              var status=0;
+  	              var tempUser ;
+  		            var sqlQuery = mySqlClient.query(selectQuery);
+  		            sqlQuery.on("result", function(row) {
+  			               tempUser=row.star001_id;
+  		                 status=1;
+  		            });
 
-                    response.writeHead(200, { 'Content-Type': 'application/json' });
-                    response.end(JSON.stringify(level1));
+  		            sqlQuery.on("end", function() {
+                  let jsonResult="";
+            			if(status){
+            				jsonResult = '{"code":"1","status":"' + status + '","id":"' + tempUser + '"}';
 
+            			}else{
+            				jsonResult = '{"code":"1","status":"' + status + '"}';
+            			}
+                  response.writeHead(200, { 'Content-Type': 'application/json' });
+                  response.end(jsonResult);
+            		});
+
+            		  sqlQuery.on("error", function(error) {
+            		      console.log(error);
+            			       let jsonResult ='{"code":"1","status":"-1"}';
+                         response.writeHead(200, { 'Content-Type': 'application/json' });
+                         response.end(jsonResult);
+            		   });
+
+              }
+            }
             }
             else {
                 response.writeHead(404);
