@@ -14,14 +14,18 @@ require('http').createServer(function (request, response) {
         response.end();
     }
     else {
+
         let buffer = '';
         request.on('data', function (chunk) {
             buffer = buffer.concat(chunk.toString());
             if (buffer.length > 1e6) request.connection.destroy(); // Prevent buffer overflow attacks
         });
         request.on('end', function () {
+            console.log(request.url);
             if (request.url.startsWith('/connect')) {
+              console.log(buffer);
                if (buffer!==null && buffer!=""){
+
                 let postData = JSON.parse(buffer);
                 if ((postData !== null)
                     || (postData.login !== null)) {
@@ -42,6 +46,7 @@ require('http').createServer(function (request, response) {
             			}else{
             				jsonResult = '{"code":"1","status":"' + status + '"}';
             			}
+                  console.log(jsonResult);
                   response.writeHead(200, { 'Content-Type': 'application/json' });
                   response.end(jsonResult);
             		});
@@ -55,11 +60,12 @@ require('http').createServer(function (request, response) {
 
               }
             }
-            }
-            else {
+          }
+          else {
+              console.log("here");
                 response.writeHead(404);
                 response.end();
-            }
+          }
         });
     }
 }).listen(15881);
